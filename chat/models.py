@@ -25,4 +25,7 @@ class Message(models.Model):
         return self.author.username
 
     def last_50_messages(self):
-        return Message.objects.order_by('-timestamp').all()[:50]
+        return Message.objects.order_by('timestamp').all()[:50]
+
+    def last_50_messagesROOM(self, room):
+        return Message.objects.order_by('timestamp').all()[:50]

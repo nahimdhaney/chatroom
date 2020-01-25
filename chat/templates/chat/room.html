@@ -5,21 +5,39 @@
     <title>Chat Room</title>
 </head>
 <body>
+    {{ username }}
     <textarea id="chat-log" cols="100" rows="20"></textarea><br/>
     <input id="chat-message-input" type="text" size="100"/><br/>
     <input id="chat-message-submit" type="button" value="Send"/>
 </body>
 <script>
     var roomName = "{{ room_name|escapejs }}";
+    var user_name = "{{ username }}";
 
     var chatSocket = new WebSocket(
         'ws://' + window.location.host +
         '/ws/chat/' + roomName + '/');
 
+    chatSocket.onopen = function(e) {
+        fetchMessages();
+    };
+
     chatSocket.onmessage = function(e) {
+        /*
         var data = JSON.parse(e.data);
         var message = data['message'];
-        document.querySelector('#chat-log').value += (message + '\n');
+        var author = message[author];
+        console.log(message)
+        document.querySelector('#chat-log').value += (message + '\n');*/
+        var data = JSON.parse(e.data);
+        console.log(data)
+        if (data['command'] === 'messages') {
+          for (let i=0; i<data['messages'].length; i++) {
+            createMessage(data['messages'][i]);
+          }
+        } else if (data['command'] === 'new_message'){
+          createMessage(data['message']);
+        }
     };
 
     chatSocket.onclose = function(e) {
@@ -37,10 +55,32 @@
         var messageInputDom = document.querySelector('#chat-message-input');
         var message = messageInputDom.value;
         chatSocket.send(JSON.stringify({
-            'message': message
+            'command': 'new_message',
+            'message': message,
+            'from': user_name,
+            "roomName": roomName
         }));
 
         messageInputDom.value = '';
     };
+
+
+
+    // get the messages in chatroom 
+    function fetchMessages() {
+      chatSocket.send(JSON.stringify({'command': 'fetch_messages' }));
+    }
+    // Function that write the message
+    function createMessage(data) {
+      var author = data['author'];
+      var concreteMEssage = ""
+      if (author === user_name) {
+        concreteMEssage += "ME: " + data.content
+      } else {
+        concreteMEssage += author+ ": " + data.content
+      }
+      document.querySelector('#chat-log').value += (concreteMEssage + '\n');
+    }
+
 </script>
 </html>
