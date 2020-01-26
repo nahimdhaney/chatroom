@@ -9,9 +9,12 @@
 dear 
     {{ username }},
     What chat room would you like to enter?<br/>
-    <input id="room-name-input" type="text" size="100"/><br/>
+    <select id="room-name-input">
+        {% for o in rooms %}
+            <option value="{{ o.name }}">{{ o.name }}</option>
+        {% endfor %}
+    </select>
     <input id="room-name-submit" type="button" value="Enter"/>
-
     <script>
         document.querySelector('#room-name-input').focus();
         document.querySelector('#room-name-input').onkeyup = function(e) {

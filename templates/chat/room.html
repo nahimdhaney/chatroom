@@ -20,7 +20,7 @@
 <script>
     var roomName = "{{ room_name|escapejs }}";
     var user_name = "{{ username }}";
-
+    var id_room = "{{ id_room }}";
     var chatSocket = new WebSocket(
         'ws://' + window.location.host +
         '/ws/chat/' + roomName + '/');
@@ -65,6 +65,7 @@
             'command': 'new_message',
             'message': message,
             'from': user_name,
+            'id_room':id_room,
             "roomName": roomName
         }));
 
@@ -75,7 +76,9 @@
 
     // get the messages in chatroom 
     function fetchMessages() {
-      chatSocket.send(JSON.stringify({'command': 'fetch_messages' }));
+      chatSocket.send(JSON.stringify({'command': 'fetch_messages',
+      'id_room':id_room
+       }));
     }
     // Function that write the message
     function createMessage(data) {

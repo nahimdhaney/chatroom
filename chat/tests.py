@@ -44,10 +44,10 @@ class ChatTests(ChannelsLiveServerTestCase):
 
     def test_when_chat_message_posted_then_seen_by_everyone_in_same_room(self):
         try:
-            self._enter_chat_room('room_1')
+            self._enter_chat_room('aa')
 
             self._open_new_window()
-            self._enter_chat_room('room_1')
+            self._enter_chat_room('aa')
 
             self._switch_to_window(0)
             self._post_message('hello')
@@ -63,10 +63,10 @@ class ChatTests(ChannelsLiveServerTestCase):
 
     def test_when_chat_message_posted_then_not_seen_by_anyone_in_different_room(self):
         try:
-            self._enter_chat_room('room_1')
+            self._enter_chat_room('aa')
 
             self._open_new_window()
-            self._enter_chat_room('room_2')
+            self._enter_chat_room('bb')
 
             self._switch_to_window(0)
             self._post_message('hello')

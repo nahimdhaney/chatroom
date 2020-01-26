@@ -10,6 +10,8 @@ import csv
 import re
 User = get_user_model()
 
+# Main Class for the app that allow users interact with WS
+
 
 class ChatConsumer(WebsocketConsumer):
 
@@ -53,7 +55,8 @@ class ChatConsumer(WebsocketConsumer):
 #   on Connect i send the last 50 messages
 
     def fetch_messages(self, data):
-        messages = Message.last_50_messages(self)
+        #       messages = Message.last_50_messages(self,)
+        messages = Message.last_50_messagesROOM(self, data['id_room'])
 #        import pdb
 #        pdb.set_trace()
         content = {
@@ -66,14 +69,16 @@ class ChatConsumer(WebsocketConsumer):
     def new_message(self, data):
         author = data['from']
         author_user = User.objects.filter(username=author)[0]
-#       roomObj = Room.objects.filter(name=data['roomName'])[0] TODO
+        roomObj = Room.objects.get(pk=data['id_room'])
         message_from = data['message']
-        roomObj = Room.objects.get(id=1)
+#       roomObj = Room.objects.get(id=1)
         message = Message.objects.create(
             author=author_user,
             content=message_from,
             room=roomObj
         )
+
+        # When bot is actives
         m = re.search(r'/stock=.*([^\s]+)', message_from)  # search REGEX
         if m is not None:
             stock_quote_name = m.group(0)[7:]

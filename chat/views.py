@@ -3,12 +3,15 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login
 from django.contrib import auth
+from .models import Room
 
 
 def index(request):
     if request.user.is_authenticated:
+        rooms = Room.objects.all()
         return render(request, 'chat/index.html', {
-            'username': request.user.username
+            'username': request.user.username,
+            'rooms': rooms
         })
     else:
         return redirect('login')
@@ -16,13 +19,12 @@ def index(request):
 
 @login_required
 def room(request, room_name):
+    id_room = Room.objects.get(name=room_name)
     return render(request, 'chat/room.html', {
         'room_name': room_name,
+        'id_room': id_room.pk,
         'username': request.user.username
     })
-
-
-"""Users views."""
 
 
 def login_view(request):
