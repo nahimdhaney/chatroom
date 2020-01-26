@@ -1,9 +1,13 @@
+import re
 from django.contrib.auth import get_user_model
 from channels.generic.websocket import WebsocketConsumer
 from asgiref.sync import async_to_sync
 import json
 from .models import Message
 from .models import Room
+import requests
+import csv
+import re
 User = get_user_model()
 
 
@@ -34,22 +38,7 @@ class ChatConsumer(WebsocketConsumer):
             self.room_group_name,
             self.channel_name
         )
-
-    """# Receive message from WebSocket
-    async def receive(self, text_data):
-        import pdb
-        pdb.set_trace()
-        text_data_json = json.loads(text_data)
-        message = text_data_json['message']
-
-        # Send message to room group
-        await self.channel_layer.group_send(
-            self.room_group_name,
-            {
-                'type': 'chat_message',
-                'message': message
-            }
-        )"""
+    # receiving message from in commands and exec
 
     def receive(self, text_data):
         data = json.loads(text_data)
@@ -60,10 +49,8 @@ class ChatConsumer(WebsocketConsumer):
         message = event['message']
         self.send(text_data=json.dumps(message))
 
-    ''' Send message to WebSocket
-    self.send(text_data=json.dumps({
-            'message': message
-        }))'''
+
+#   on Connect i send the last 50 messages
 
     def fetch_messages(self, data):
         messages = Message.last_50_messages(self)
@@ -79,13 +66,29 @@ class ChatConsumer(WebsocketConsumer):
     def new_message(self, data):
         author = data['from']
         author_user = User.objects.filter(username=author)[0]
-#        roomObj = Room.objects.filter(name=data['roomName'])[0] TODO
+#       roomObj = Room.objects.filter(name=data['roomName'])[0] TODO
+        message_from = data['message']
         roomObj = Room.objects.get(id=1)
         message = Message.objects.create(
             author=author_user,
-            content=data['message'],
+            content=message_from,
             room=roomObj
         )
+        m = re.search(r'/stock=.*([^\s]+)', message_from)  # search REGEX
+        if m is not None:
+            stock_quote_name = m.group(0)[7:]
+            csv_url = "https://stooq.com/q/l/?s=" + \
+                stock_quote_name + "&f=sd2t2ohlcv&h&e=csv"
+            quote = self.getQuoteFromCSV_url(csv_url)
+            content_bot_message = stock_quote_name + " quote is $" + quote + " per share"
+            bot_message = {'id': 'bot', 'author': 'bot',
+                           'content': content_bot_message, 'timestamp': 'HORA'}
+            Botcontent = {
+                'command': 'new_message',
+                'message': bot_message
+            }
+            self.send_chat_message(Botcontent)
+
         content = {
             'command': 'new_message',
             'message': self.message_to_json(message)
@@ -127,3 +130,15 @@ class ChatConsumer(WebsocketConsumer):
                 'message': message
             }
         )
+
+    # Bot call the Quote API from CSV
+    def getQuoteFromCSV_url(self, csv_url):
+        with requests.Session() as s:
+            download = s.get(csv_url)
+            decoded_content = download.content.decode('utf-8')
+            cr = csv.reader(decoded_content.splitlines(), delimiter=',')
+            my_list = list(cr)  # get list
+            index_Close = my_list[0].index('Close')  # get the index Close
+            quoute_value = my_list[1][index_Close]
+            print(csv_url)
+            return quoute_value  # Str
