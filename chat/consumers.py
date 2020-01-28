@@ -40,6 +40,7 @@ class ChatConsumer(WebsocketConsumer):
             self.room_group_name,
             self.channel_name
         )
+
     # receiving message from in commands and exec
 
     def receive(self, text_data):
