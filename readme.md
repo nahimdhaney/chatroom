@@ -2,11 +2,19 @@
 
 To run the backend, run:
 
-```json
+```
 virtualenv env
 source env/bin/activate
 pip install -r requirements.txt
 python manage.py runserver
+```
+if you have problem with requirements:
+
+```
+pip install django
+pip install channels
+pip install channels_redis
+pip install selenium
 ```
 
 how to use:
