@@ -15,7 +15,6 @@ class ChatConsumer(WebsocketConsumer):
     def connect(self):
         self.room_name = self.scope['url_route']['kwargs']['room_name']
         self.room_group_name = 'chat_%s' % self.room_name.strip()
-        #print(tasks.add(2, 4))
         # Join room group
         async_to_sync(self.channel_layer.group_add)(
             self.room_group_name,
@@ -67,7 +66,6 @@ class ChatConsumer(WebsocketConsumer):
             'command': 'messages',
             'messages': self.messages_to_json(messages)
         }
-        # print(content)
         self.send_message(content)
 
     # New Message from user
@@ -88,7 +86,6 @@ class ChatConsumer(WebsocketConsumer):
             # search REGEX
             m = re.search(r'^/' + key + '=.*([^\s]+)', message_from)
             if m is not None:
-                print()
                 self.api_request[key](self, m)
 
         content = {
