@@ -1,6 +1,10 @@
 # CHATROOM CHALLENGE
 
-To run the backend, run:
+This Django Project use redis and celery to manage chat-rooms.
+
+with /stock='quote' you will call a bot and he will send a message to the room.
+
+## To run the backend, run:
 
 ```
 virtualenv env
@@ -41,11 +45,20 @@ tests: nosetests
 
 ```
 
+use the bot
+
+```
+with the command **/stock='quote'** you will call a bot and it will send a message to the room.
+
+example:
+
+/stock=aapl.us
+```
+
 Please note this is a **demo project**
 
 if you require any further information please contact me :
 Nahim Terrazas
 +591 74673131
 nahimdhaney@hotmail.com
-
-Made With ? in Bolivia
+SC - Bolivia
