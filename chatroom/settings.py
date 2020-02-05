@@ -32,9 +32,10 @@ INSTALLED_APPS = [
 
     # User Apps
     'chat',
-    'bot',
     # Channels Apps
     'channels',
+    # Testing Library
+    'django_nose',
 ]
 
 MIDDLEWARE = [
@@ -139,3 +140,24 @@ STATICFILES_FINDERS = [
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
+
+# Django-Redis needs to be installed first NTP 03/02/2020
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        # Here we have Redis DSN (for ex. redis://localhost:6379/1)
+        "LOCATION": [('127.0.0.1', 6379)],
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            "MAX_ENTRIES": 1000  # Increase max cache entries to 1k (from 300)
+        },
+    }
+}
+
+
+# CELERY
+CELERY_BROKER_URL = 'redis://127.0.0.1:6379'
+CELERY_RESULT_BACKEND = 'redis://127.0.0.1:6379'
+
+# test runner
+TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'

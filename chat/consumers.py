@@ -5,20 +5,17 @@ from asgiref.sync import async_to_sync
 import json
 from .models import Message
 from .models import Room
-import requests
-import csv
 import re
+from . import tasks
 User = get_user_model()
-
-# Main Class for the app that allow users interact with WS
 
 
 class ChatConsumer(WebsocketConsumer):
 
     def connect(self):
         self.room_name = self.scope['url_route']['kwargs']['room_name']
-        self.room_group_name = 'chat_%s' % self.room_name
-
+        self.room_group_name = 'chat_%s' % self.room_name.strip()
+        #print(tasks.add(2, 4))
         # Join room group
         async_to_sync(self.channel_layer.group_add)(
             self.room_group_name,
@@ -52,18 +49,25 @@ class ChatConsumer(WebsocketConsumer):
         message = event['message']
         self.send(text_data=json.dumps(message))
 
+    def task_message(self, event):
+        message = event['message']
+        # Send message to WebSocket
+        self.send(text_data=json.dumps(message))
 
 #   on Connect i send the last 50 messages
 
     def fetch_messages(self, data):
         #       messages = Message.last_50_messages(self,)
-        messages = Message.last_50_messagesROOM(self, data['id_room'])
+        messages = reversed(
+            Message.last_50_messagesROOM(self, data['id_room']))
 #        import pdb
 #        pdb.set_trace()
+
         content = {
             'command': 'messages',
             'messages': self.messages_to_json(messages)
         }
+        # print(content)
         self.send_message(content)
 
     # New Message from user
@@ -79,21 +83,13 @@ class ChatConsumer(WebsocketConsumer):
             room=roomObj
         )
 
-        # When bot is actives
-        m = re.search(r'/stock=.*([^\s]+)', message_from)  # search REGEX
-        if m is not None:
-            stock_quote_name = m.group(0)[7:]
-            csv_url = "https://stooq.com/q/l/?s=" + \
-                stock_quote_name + "&f=sd2t2ohlcv&h&e=csv"
-            quote = self.getQuoteFromCSV_url(csv_url)
-            content_bot_message = stock_quote_name + " quote is $" + quote + " per share"
-            bot_message = {'id': 'bot', 'author': 'bot',
-                           'content': content_bot_message, 'timestamp': 'HORA'}
-            Botcontent = {
-                'command': 'new_message',
-                'message': bot_message
-            }
-            self.send_chat_message(Botcontent)
+        # Regex check to send to bot
+        for key in self.api_request:
+            # search REGEX
+            m = re.search(r'^/' + key + '=.*([^\s]+)', message_from)
+            if m is not None:
+                print()
+                self.api_request[key](self, m)
 
         content = {
             'command': 'new_message',
@@ -118,14 +114,25 @@ class ChatConsumer(WebsocketConsumer):
             result.append(self.message_to_json(message))
         return result
 
+    # Call Quote Request
+    def quote_request(self, m):
+        # executing robotCall
+        tasks.robotCall.delay(m.group(0)[7:], self.room_group_name)
+
     # Send the message
+
     def send_message(self, message):
         self.send(text_data=json.dumps(message))
 
-    # TWO TYPES OF COMMANDS
+    # TWO TYPES OF COMMANDS to call
     commands = {
         'fetch_messages': fetch_messages,
         'new_message': new_message
+    }
+
+    # API REQUESTS
+    api_request = {
+        'stock': quote_request,
     }
 
     def send_chat_message(self, message):
@@ -136,15 +143,3 @@ class ChatConsumer(WebsocketConsumer):
                 'message': message
             }
         )
-
-    # Bot call the Quote API from CSV
-    def getQuoteFromCSV_url(self, csv_url):
-        with requests.Session() as s:
-            download = s.get(csv_url)
-            decoded_content = download.content.decode('utf-8')
-            cr = csv.reader(decoded_content.splitlines(), delimiter=',')
-            my_list = list(cr)  # get list
-            index_Close = my_list[0].index('Close')  # get the index Close
-            quoute_value = my_list[1][index_Close]
-            print(csv_url)
-            return quoute_value  # Str

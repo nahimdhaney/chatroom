@@ -22,10 +22,10 @@ class Message(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return self.author.username
+        return self.author.username + " - " + self.content
 
     def last_50_messages(self):
         return Message.objects.order_by('timestamp').all()[:50]
 
     def last_50_messagesROOM(self, room):
-        return Message.objects.filter(room=room).order_by('timestamp')[:50]
+        return Message.objects.filter(room=room).order_by('-timestamp')[:50]
