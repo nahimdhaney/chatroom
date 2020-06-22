@@ -2,7 +2,7 @@
 
 This Django Project use redis and celery to manage chat-rooms.
 
-with /stock='quote' you will call a bot and he will send a message to the room.
+with /stock='quote' you'll call a bot and he is going to send a message to the room.
 
 ## To run the backend, run:
 
