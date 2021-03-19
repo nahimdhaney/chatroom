@@ -31,7 +31,7 @@ dill==0.3.1.1
 Django==3.0.1
 django-nose==1.4.6
 django-redis==4.11.0
-djangorestframework==3.11.0
+djangorestframework==3.11.2
 dnspython==1.16.0
 entrypoints==0.3
 eventlet==0.25.1
