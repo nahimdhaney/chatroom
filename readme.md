@@ -59,6 +59,4 @@ Please note this is a **demo project**
 
 if you require any further information please contact me :
 Nahim Terrazas
-+591 74673131
-nahimdhaney@hotmail.com
 SC - Bolivia
